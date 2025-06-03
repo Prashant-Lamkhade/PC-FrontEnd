@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-
+import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { X, Copy, Download, Share2, ThumbsUp, FileCog } from 'lucide-react';
 import { Filter, Trash2, RefreshCw } from 'lucide-react';
@@ -32,6 +32,12 @@ import {
     XCircle
 } from 'lucide-react';
 
+
+
+// Declare at the top or appropriate scope
+// ######################################################################################################
+let mockNotices = [];
+// #######################################################################################################
 const Dashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
     const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -46,9 +52,65 @@ const Dashboard = () => {
     const [showViewModal, setShowViewModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedNotice, setSelectedNotice] = useState(null);
+
+    const fetchNotices = async (token) => {
+        try {
+            const response = await axios.get('http://localhost:8080/api/notices', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            // Transform backend response
+            const transformedNotices = response.data.map(n => ({
+                id: n.noticeId,
+                title: `${n.jobRole} - ${n.companyName}`,
+                description: n.customResponsibilities || 'No description provided.',
+                stream: n.campusStreams?.[0]?.streamName || 'General',
+                status: capitalizeFirst(n.status),
+                deadline: n.lastDateToApply,
+                createdDate: formatDate(n.createdAt),
+                submittedDate: formatDate(n.createdAt),
+                approvedDate: formatDate(n.approvedAt),
+                rejectedDate: n.status === 'REJECTED' ? formatDate(n.updatedAt) : null,
+                rejectionReason: n.rejectionReason || null,
+                company: n.companyName,
+                salary: n.packageDetails,
+                location: n.jobLocation,
+                attachments: [], // You can handle this when your backend supports it
+                jobType: n.jobType,
+                modeOfWork: n.modeOfWork,
+                joiningDetails: n.customJoiningText,
+                googleFormLink: n.googleFormLink,
+                creatorName: n.creatorName,
+                approverName: n.approverName
+            }));
+
+            // ✅ Assign to mockNotices
+            // console.log(transformedNotices);
+            mockNotices = transformedNotices;
+
+            return mockNotices;
+        } catch (error) {
+            console.error("Error fetching notices:", error);
+            throw error;
+        }
+    };
+
+    // Utility functions
+    const formatDate = (isoString) => {
+        return isoString ? isoString.split('T')[0] : null;
+    };
+
+    const capitalizeFirst = (text) => {
+        return text ? text.charAt(0).toUpperCase() + text.slice(1).toLowerCase() : '';
+    };
+
     // Authentication check on component mount
     useEffect(() => {
         const token = localStorage.getItem("token");
+        let db = fetchNotices();
 
         // Redirect to login if no token found
         if (!token) {
@@ -67,68 +129,78 @@ const Dashboard = () => {
     ];
 
     // Mock data for demonstration
-    const mockNotices = [
-        {
-            id: 1,
-            title: 'Software Engineer - TCS',
-            description: 'Full-time software development role requiring strong programming skills in Java and Python.',
-            stream: 'Computer Science',
-            status: 'Approved',
-            deadline: '2024-06-15',
-            createdDate: '2024-05-15',
-            submittedDate: '2024-05-16',
-            approvedDate: '2024-05-18',
-            company: 'Tata Consultancy Services',
-            salary: '₹6-8 LPA',
-            location: 'Mumbai',
-            attachments: ['TCS_JD.pdf', 'Requirements.pdf']
-        },
-        {
-            id: 2,
-            title: 'Data Analyst - Infosys',
-            description: 'Analyzing business data and creating reports using SQL and Excel.',
-            stream: 'Information Technology',
-            status: 'Pending',
-            deadline: '2024-06-20',
-            createdDate: '2024-05-20',
-            submittedDate: '2024-05-21',
-            company: 'Infosys Limited',
-            salary: '₹5-7 LPA',
-            location: 'Bangalore',
-            attachments: ['Infosys_JD.pdf']
-        },
-        {
-            id: 3,
-            title: 'Marketing Executive - Wipro',
-            description: 'Digital marketing and brand management role.',
-            stream: 'Business Administration',
-            status: 'Rejected',
-            deadline: '2024-06-10',
-            createdDate: '2024-05-10',
-            submittedDate: '2024-05-12',
-            rejectedDate: '2024-05-14',
-            rejectionReason: 'Incomplete job description. Please provide more details about required qualifications.',
-            company: 'Wipro Technologies',
-            salary: '₹4-6 LPA',
-            location: 'Pune',
-            attachments: ['Wipro_JD.pdf']
-        },
-        {
-            id: 4,
-            title: 'Mechanical Engineer - Mahindra',
-            description: 'Design and development of automotive components.',
-            stream: 'Mechanical Engineering',
-            status: 'Approved',
-            deadline: '2024-07-01',
-            createdDate: '2024-05-25',
-            submittedDate: '2024-05-26',
-            approvedDate: '2024-05-28',
-            company: 'Mahindra & Mahindra',
-            salary: '₹7-9 LPA',
-            location: 'Chennai',
-            attachments: ['Mahindra_JD.pdf', 'Technical_Requirements.pdf']
-        }
-    ];
+
+
+
+
+
+
+
+
+
+
+    // const mockNotices = [
+    //     {
+    //         id: 1,
+    //         title: 'Software Engineer - TCS',
+    //         description: 'Full-time software development role requiring strong programming skills in Java and Python.',
+    //         stream: 'Computer Science',
+    //         status: 'Approved',
+    //         deadline: '2024-06-15',
+    //         createdDate: '2024-05-15',
+    //         submittedDate: '2024-05-16',
+    //         approvedDate: '2024-05-18',
+    //         company: 'Tata Consultancy Services',
+    //         salary: '₹6-8 LPA',
+    //         location: 'Mumbai',
+    //         attachments: ['TCS_JD.pdf', 'Requirements.pdf']
+    //     },
+    //     {
+    //         id: 2,
+    //         title: 'Data Analyst - Infosys',
+    //         description: 'Analyzing business data and creating reports using SQL and Excel.',
+    //         stream: 'Information Technology',
+    //         status: 'Pending',
+    //         deadline: '2024-06-20',
+    //         createdDate: '2024-05-20',
+    //         submittedDate: '2024-05-21',
+    //         company: 'Infosys Limited',
+    //         salary: '₹5-7 LPA',
+    //         location: 'Bangalore',
+    //         attachments: ['Infosys_JD.pdf']
+    //     },
+    //     {
+    //         id: 3,
+    //         title: 'Marketing Executive - Wipro',
+    //         description: 'Digital marketing and brand management role.',
+    //         stream: 'Business Administration',
+    //         status: 'Rejected',
+    //         deadline: '2024-06-10',
+    //         createdDate: '2024-05-10',
+    //         submittedDate: '2024-05-12',
+    //         rejectedDate: '2024-05-14',
+    //         rejectionReason: 'Incomplete job description. Please provide more details about required qualifications.',
+    //         company: 'Wipro Technologies',
+    //         salary: '₹4-6 LPA',
+    //         location: 'Pune',
+    //         attachments: ['Wipro_JD.pdf']
+    //     },
+    //     {
+    //         id: 4,
+    //         title: 'Mechanical Engineer - Mahindra',
+    //         description: 'Design and development of automotive components.',
+    //         stream: 'Mechanical Engineering',
+    //         status: 'Approved',
+    //         deadline: '2024-07-01',
+    //         createdDate: '2024-05-25',
+    //         submittedDate: '2024-05-26',
+    //         approvedDate: '2024-05-28',
+    //         company: 'Mahindra & Mahindra',
+    //         salary: '₹7-9 LPA',
+    //         location: 'Chennai',
+    //         attachments: ['Mahindra_JD.pdf', 'Technical_Requirements.pdf']
+    //     }
+    // ];
 
     const streams = ['All', 'Computer Science', 'Information Technology', 'Business Administration', 'Mechanical Engineering', 'Electrical Engineering'];
     const statuses = ['All', 'Pending', 'Approved', 'Rejected'];
@@ -401,7 +473,8 @@ const Dashboard = () => {
     const [formData, setFormData] = useState({
         jobType: '',
         companyName: '',
-        eligibleStream: '',
+        selectedCampuses: [], // Changed from single to multiple
+        eligibleStream: [], // Changed to array for multiple streams  
         jobLocation: '',
         jobRole: '',
         packageDetails: '',
@@ -417,6 +490,69 @@ const Dashboard = () => {
         eligibleBatches: [],
         coordinators: []
     });
+    const campusData = {
+        'Main Campus': ['Computer Science', 'Information Technology', 'Electronics', 'Mechanical', 'Civil'],
+        'North Campus': ['Computer Science', 'Mechanical', 'Electrical', 'Chemical'],
+        'South Campus': ['Information Technology', 'Electronics', 'Biotech', 'Environmental'],
+        'East Campus': ['Computer Science', 'Data Science', 'AI/ML', 'Cybersecurity']
+    };
+
+    const availableCampuses = Object.keys(campusData);
+
+
+    const getAvailableStreams = () => {
+        if (formData.selectedCampuses.length === 0) return [];
+
+        const allStreams = formData.selectedCampuses.reduce((streams, campus) => {
+            const campusStreams = campusData[campus] || [];
+            return [...streams, ...campusStreams];
+        }, []);
+
+        // Remove duplicates
+        return [...new Set(allStreams)];
+    };
+
+    const handleCampusSelection = (campus) => {
+        const updatedCampuses = formData.selectedCampuses.includes(campus)
+            ? formData.selectedCampuses.filter(c => c !== campus)
+            : [...formData.selectedCampuses, campus];
+
+        updateFormData('selectedCampuses', updatedCampuses);
+
+        // Reset streams when campus selection changes
+        if (updatedCampuses.length === 0) {
+            updateFormData('eligibleStream', []);
+        } else {
+            // Remove streams that are no longer available
+            const availableStreams = updatedCampuses.reduce((streams, campusName) => {
+                const campusStreams = campusData[campusName] || [];
+                return [...streams, ...campusStreams];
+            }, []);
+            const uniqueAvailableStreams = [...new Set(availableStreams)];
+
+            const validStreams = formData.eligibleStream.filter(stream =>
+                uniqueAvailableStreams.includes(stream)
+            );
+            updateFormData('eligibleStream', validStreams);
+        }
+    };
+
+    const handleStreamSelection = (stream) => {
+        const updatedStreams = formData.eligibleStream.includes(stream)
+            ? formData.eligibleStream.filter(s => s !== stream)
+            : [...formData.eligibleStream, stream];
+
+        updateFormData('eligibleStream', updatedStreams);
+    };
+
+    const removeCampus = (campus) => {
+        handleCampusSelection(campus);
+    };
+
+    const removeStream = (stream) => {
+        handleStreamSelection(stream);
+    };
+
 
     const updateFormData = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -459,6 +595,7 @@ const Dashboard = () => {
         notice += `For ${formData.eligibleBatches.sort().join(', ')} Batch\n\n`;
 
         if (formData.companyName) notice += `*Company:* ${formData.companyName}\n\n`;
+        if (formData.selectedCampuses) notice += `*Campus: * ${formData.selectedCampuses} \n\n`
         if (formData.eligibleStream) notice += `*Eligible Stream:* ${formData.eligibleStream}\n\n`;
         if (formData.jobLocation) notice += `*Job Location:* ${formData.jobLocation}\n\n`;
         if (formData.jobRole) notice += `*Job Role:* ${formData.jobRole}\n\n`;
@@ -779,8 +916,239 @@ const Dashboard = () => {
 
 
 
+    // ###############################################################################################################
 
+    // HERE ALL API CONSTRUCTION START:
+    // Add these state variables to your component
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
+    // Validation function for form data
+    const validateFormData = () => {
+        // Required fields validation
+        if (!formData.jobType) return "Job Type is required";
+        if (!formData.companyName) return "Company Name is required";
+        if (!formData.jobRole) return "Job Role is required";
+        if (!formData.jobLocation) return "Job Location is required";
+        if (!formData.packageDetails) return "Package Details is required";
+        if (!formData.lastDateToApply) return "Last Date to Apply is required";
+        if (formData.selectedCampuses.length === 0) return "At least one campus must be selected";
+        if (formData.eligibleStream.length === 0) return "At least one stream must be selected";
+        if (formData.eligibleBatches.length === 0) return "At least one batch must be selected";
+
+        // Google Form Link validation
+        if (!formData.googleFormLink) return "Google Form Link is required";
+        if (!formData.googleFormLink.includes('https://forms.gle')) {
+            return "Please provide a valid Google Form link";
+        }
+
+        // WhatsApp Group Link validation (if provided)
+        if (formData.whatsappGroupLink && !formData.whatsappGroupLink.includes('chat.whatsapp.com')) {
+            return "Please provide a valid WhatsApp group link";
+        }
+
+        // Coordinators validation
+        if (formData.coordinators.length === 0) return "At least one coordinator is required";
+        for (let i = 0; i < formData.coordinators.length; i++) {
+            const coord = formData.coordinators[i];
+            if (!coord.name || !coord.phone) {
+                return `Coordinator ${i + 1}: Both name and phone are required`;
+            }
+            // Basic phone validation
+            if (!/^[+]?[\d\s-()]{10,}$/.test(coord.phone)) {
+                return `Coordinator ${i + 1}: Please provide a valid phone number`;
+            }
+        }
+
+        // // Date validation
+        // const today = new Date();
+        // const applyDate = new Date(formData.lastDateToApply);
+        // if (applyDate <= today) {
+        //     return "Last Date to Apply should be a future date";
+        // }
+
+        return null; // No errors
+    };
+
+    // Main form submission handler
+    const handleCreateNoticeSubmit = async (e) => {
+
+        setError("");
+        setSuccess("");
+
+        // Validate form data
+        const errorMsg = validateFormData();
+        if (errorMsg) {
+            setError(errorMsg);
+            return;
+        }
+
+        setLoading(true);
+
+        try {
+            // Get token for authentication
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setError("Authentication token not found. Please login again.");
+                navigate("/login");
+                return;
+            }
+
+            // Prepare data for API (matching your Postman structure)
+            const apiData = {
+                jobType: formData.jobType,
+                companyName: formData.companyName,
+                jobRole: formData.jobRole,
+                jobLocation: formData.jobLocation,
+                packageDetails: formData.packageDetails,
+                performanceBased: formData.performanceBased,
+                modeOfWork: formData.modeOfWork,
+                lastDateToApply: formData.lastDateToApply,
+                joiningDetails: formData.joiningDetails === 'immediate' ? 'immediate' : 'CUSTOM',
+                customJoiningText: formData.joiningDetails === 'immediate' ? '' : formData.customJoiningText,
+                jobResponsibilities: formData.jobResponsibilities === 'refer' ? 'refer' : 'CUSTOM',
+                customResponsibilities: formData.jobResponsibilities === 'refer' ? '' : formData.customResponsibilities,
+                googleFormLink: formData.googleFormLink,
+                whatsappGroupLink: formData.whatsappGroupLink || null,
+                createdBy: 1, // This should come from logged-in user context
+                selectedCampusIds: formData.selectedCampuses.map(campus => {
+                    // Map campus names to IDs (you might need to adjust this based on your backend)
+                    const campusMap = {
+                        'Main Campus': 1,
+                        'North Campus': 2,
+                        'South Campus': 3,
+                        'East Campus': 4
+                    };
+                    return campusMap[campus] || 1;
+                }),
+                selectedStreamIds: formData.eligibleStream.map(stream => {
+                    // Map stream names to IDs (you might need to adjust this based on your backend)
+                    const streamMap = {
+                        'Computer Science': 1,
+                        'Information Technology': 2,
+                        'Electronics': 3,
+                        'Mechanical': 4,
+                        'Civil': 5,
+                        'Electrical': 6,
+                        'Chemical': 7,
+                        'Biotech': 8,
+                        'Environmental': 9,
+                        'Data Science': 10,
+                        'AI/ML': 11,
+                        'Cybersecurity': 12
+                    };
+                    return streamMap[stream] || 1;
+                }),
+                approvedBy: 1 // This should be set by admin/approver
+            };
+
+            // Make API call
+            const response = await axios.post(
+                "http://localhost:8080/api/notices/create",
+                apiData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            // Handle success
+            setSuccess("Job notice created successfully!");
+
+            // Reset form data
+            setFormData({
+                jobType: '',
+                companyName: '',
+                selectedCampuses: [],
+                eligibleStream: [],
+                jobLocation: '',
+                jobRole: '',
+                packageDetails: '',
+                performanceBased: false,
+                modeOfWork: 'Office',
+                lastDateToApply: '',
+                joiningDetails: 'immediate',
+                customJoiningText: '',
+                jobResponsibilities: 'refer',
+                customResponsibilities: '',
+                googleFormLink: '',
+                whatsappGroupLink: '',
+                eligibleBatches: [],
+                coordinators: []
+            });
+
+            // Optional: Navigate to manage notices or show success message
+            setTimeout(() => {
+                setActiveTab('manageNotices'); // Switch to manage notices tab
+            }, 2000);
+
+        } catch (err) {
+            console.error('Error creating notice:', err);
+
+            // Handle different types of errors
+            if (err.response?.status === 401) {
+                setError("Session expired. Please login again.");
+                localStorage.removeItem("token");
+                navigate("/login");
+            } else if (err.response?.status === 403) {
+                setError("You don't have permission to create notices.");
+            } else {
+                const backendError = err.response?.data;
+                const message = typeof backendError === "string"
+                    ? backendError
+                    : backendError?.error || backendError?.message || "Failed to create notice. Please try again.";
+                setError(message);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Helper function to clear messages
+    const clearMessages = () => {
+        setError("");
+        setSuccess("");
+    };
+
+    // You can also add this helper function to handle draft saving
+    const handleSaveDraft = async () => {
+        setError("");
+        setSuccess("");
+
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                setError("Authentication token not found. Please login again.");
+                return;
+            }
+
+            // Save as draft (you might need a different endpoint)
+            const draftData = {
+                ...formData,
+                status: 'DRAFT'
+            };
+
+            const response = await axios.post(
+                "http://localhost:8080/api/notices/draft",
+                draftData,
+                {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            setSuccess("Draft saved successfully!");
+
+        } catch (err) {
+            console.error('Error saving draft:', err);
+            setError("Failed to save draft. Please try again.");
+        }
+    };
 
 
 
@@ -789,6 +1157,7 @@ const Dashboard = () => {
 
     // #################################################################################################################
     return (
+
         <div className="flex h-screen bg-gray-100">
             {/* Sidebar */}
             <div className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-blue-800 text-white transition-all duration-300 ease-in-out`}>
@@ -902,7 +1271,7 @@ const Dashboard = () => {
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-medium text-gray-500">Total Job Notices</h3>
-                                        <p className="text-2xl font-semibold text-gray-800">15</p>
+                                        <p className="text-2xl font-semibold text-gray-800">{mockNotices.length}</p>
                                     </div>
                                 </div>
 
@@ -946,9 +1315,10 @@ const Dashboard = () => {
                                             View All
                                         </button>
                                     </div>
+
                                     <div className="p-4">
                                         <div className="space-y-4">
-                                            {mockNotices.map(notice => (
+                                            {mockNotices.slice(0, 3).map(notice => (
                                                 <div key={notice.id} className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg border border-gray-100">
                                                     <div className="flex items-center space-x-3">
                                                         {getStatusIcon(notice.status)}
@@ -962,6 +1332,7 @@ const Dashboard = () => {
                                                     </span>
                                                 </div>
                                             ))}
+
                                         </div>
                                     </div>
                                 </div>
@@ -1013,12 +1384,16 @@ const Dashboard = () => {
 
                     {/* Create Job Notice Content */}
                     {activeTab === 'createNotice' && (
+
+
+
                         <div className="min-h-screen bg-gray-50 p-4">
                             <div className="max-w-7xl mx-auto">
                                 <h1 className="text-3xl font-bold text-gray-800 mb-8">Placement Notice Generator</h1>
 
                                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                                     {/* Form Section */}
+
                                     <div className="bg-white rounded-lg shadow-sm border">
                                         {/* Tabs */}
                                         <div className="border-b border-gray-200">
@@ -1071,6 +1446,104 @@ const Dashboard = () => {
                                                         />
                                                     </div>
 
+
+
+                                                    {/* Campus Selection */}
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                            Campus Selection <span className="text-red-500">*</span>
+                                                        </label>
+                                                        <div className="border border-gray-300 rounded-md p-3 min-h-[100px]">
+                                                            <div className="grid grid-cols-2 gap-2 mb-3">
+                                                                {availableCampuses.map((campus) => (
+                                                                    <label key={campus} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={formData.selectedCampuses.includes(campus)}
+                                                                            onChange={() => handleCampusSelection(campus)}
+                                                                            className="mr-2 h-4 w-4 text-blue-600"
+                                                                        />
+                                                                        <span className="text-sm">{campus}</span>
+                                                                    </label>
+                                                                ))}
+                                                            </div>
+
+                                                            {/* Selected Campuses Tags */}
+                                                            {formData.selectedCampuses.length > 0 && (
+                                                                <div className="border-t pt-3">
+                                                                    <p className="text-xs text-gray-600 mb-2">Selected Campuses:</p>
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        {formData.selectedCampuses.map((campus) => (
+                                                                            <span
+                                                                                key={campus}
+                                                                                className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800"
+                                                                            >
+                                                                                {campus}
+                                                                                <button
+                                                                                    type="button"
+                                                                                    onClick={() => removeCampus(campus)}
+                                                                                    className="ml-1 hover:text-blue-600"
+                                                                                >
+                                                                                    <X size={12} />
+                                                                                </button>
+                                                                            </span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Stream Selection - Only show if campuses are selected */}
+                                                    {formData.selectedCampuses.length > 0 && (
+                                                        <div>
+                                                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                                                Eligible Streams <span className="text-red-500">*</span>
+                                                            </label>
+                                                            <div className="border border-gray-300 rounded-md p-3 min-h-[100px]">
+                                                                <div className="grid grid-cols-2 gap-2 mb-3">
+                                                                    {getAvailableStreams().map((stream) => (
+                                                                        <label key={stream} className="flex items-center cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                                                            <input
+                                                                                type="checkbox"
+                                                                                checked={formData.eligibleStream.includes(stream)}
+                                                                                onChange={() => handleStreamSelection(stream)}
+                                                                                className="mr-2 h-4 w-4 text-green-600"
+                                                                            />
+                                                                            <span className="text-sm">{stream}</span>
+                                                                        </label>
+                                                                    ))}
+                                                                </div>
+
+                                                                {/* Selected Streams Tags */}
+                                                                {formData.eligibleStream.length > 0 && (
+                                                                    <div className="border-t pt-3">
+                                                                        <p className="text-xs text-gray-600 mb-2">Selected Streams:</p>
+                                                                        <div className="flex flex-wrap gap-2">
+                                                                            {formData.eligibleStream.map((stream) => (
+                                                                                <span
+                                                                                    key={stream}
+                                                                                    className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-green-100 text-green-800"
+                                                                                >
+                                                                                    {stream}
+                                                                                    <button
+                                                                                        type="button"
+                                                                                        onClick={() => removeStream(stream)}
+                                                                                        className="ml-1 hover:text-green-600"
+                                                                                    >
+                                                                                        <X size={12} />
+                                                                                    </button>
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+
+
                                                     <div className="grid grid-cols-2 gap-4">
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 mb-2">Eligible Stream</label>
@@ -1082,6 +1555,8 @@ const Dashboard = () => {
                                                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                             />
                                                         </div>
+
+
                                                         <div>
                                                             <label className="block text-sm font-medium text-gray-700 mb-2">Job Location</label>
                                                             <input
@@ -1225,12 +1700,17 @@ const Dashboard = () => {
                                                             />
                                                         )}
                                                         <div className="flex space-x-4 pt-4">
+
                                                             <button
-                                                                onClick={generateNotice}
-                                                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center"
+                                                                type="button" // Changed from submit to button
+                                                                disabled={loading}
+                                                                onClick={handleCreateNoticeSubmit} // This should handle the submission
+                                                                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center disabled:opacity-50"
                                                             >
-                                                                <FileCog className="w-4 h-4 mr-2" />Generate Notice
+                                                                <FileCog className="w-4 h-4 mr-2" />
+                                                                {loading ? 'Creating...' : 'Generate Notice'}
                                                             </button>
+
                                                             <button
                                                                 // onClick={UPDATE-TPO}
                                                                 className="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 flex items-center"
@@ -1417,7 +1897,34 @@ const Dashboard = () => {
                                             </div>
                                         </div>
                                     </div>
+                                    {error && (
+                                        <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+                                            <div className="flex">
+                                                <div className="flex-shrink-0">
+                                                    <X className="h-5 w-5 text-red-400" />
+                                                </div>
+                                                <div className="ml-3">
+                                                    <p className="text-sm text-red-700">{error}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {success && (
+                                        <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-md">
+                                            <div className="flex">
+                                                <div className="flex-shrink-0">
+                                                    <Check className="h-5 w-5 text-green-400" />
+                                                </div>
+                                                <div className="ml-3">
+                                                    <p className="text-sm text-green-700">{success}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
                                 </div>
+
                             </div>
                         </div>
                     )}
@@ -1430,7 +1937,9 @@ const Dashboard = () => {
                                 <div className="flex justify-between items-center mb-6">
                                     <h2 className="text-2xl font-semibold text-gray-800">Manage Job Notices</h2>
                                     <div className="flex space-x-3">
-                                        <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                                        <button className="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                            onClick={fetchNotices}
+                                        >
                                             <RefreshCw size={16} />
                                             <span>Refresh</span>
                                         </button>
@@ -2068,8 +2577,8 @@ const Dashboard = () => {
                 <footer className="bg-white p-4 border-t text-center text-sm text-gray-600">
                     Placement Coordinator Portal © {new Date().getFullYear()}
                 </footer>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 

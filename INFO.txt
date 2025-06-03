@@ -1,0 +1,6 @@
+Current placement coardiantor id put kkaraychi baki rahiliyt dashboard.jsx/
+and also campus & stream formdata remained
+tpo aprove remained currently all are defined manually not automatically
+
+ const mockNotices = [ get data from db to here
+ campus data also edit from db
