@@ -36,7 +36,7 @@ import {
 
 // Declare at the top or appropriate scope
 // ######################################################################################################
-let mockNotices = [];
+// let mockNotices = [];
 // #######################################################################################################
 const Dashboard = () => {
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -53,7 +53,13 @@ const Dashboard = () => {
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedNotice, setSelectedNotice] = useState(null);
 
+    // #############################################################################################33
+
+    const [mockNotices, setNotices] = useState([]);
+
     const fetchNotices = async (token) => {
+        setLoading(true);
+        setError(false);
         try {
             const response = await axios.get('http://localhost:8080/api/notices', {
                 headers: {
@@ -89,12 +95,16 @@ const Dashboard = () => {
 
             // ✅ Assign to mockNotices
             // console.log(transformedNotices);
-            mockNotices = transformedNotices;
+
+            setNotices(transformedNotices);
+
 
             return mockNotices;
         } catch (error) {
             console.error("Error fetching notices:", error);
             throw error;
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -109,10 +119,13 @@ const Dashboard = () => {
 
     // Authentication check on component mount
     useEffect(() => {
+
         const token = localStorage.getItem("token");
+
         let db = fetchNotices();
 
         // Redirect to login if no token found
+
         if (!token) {
             navigate("/login");
         }
